@@ -167,7 +167,9 @@ def fetch_economic_data():
     try:
         cpi = web.DataReader('CPIAUCSL', 'fred', start, end)
         unrate = web.DataReader('UNRATE', 'fred', start, end)
-        gdp = web.DataReader('GDP', 'fred', start, end)
+        
+        # GDP: Real Gross Domestic Product, Percent Change from Preceding Period, Seasonally Adjusted Annual Rate
+        gdp = web.DataReader('A191RL1Q225SBEA', 'fred', start, end)
         
         latest_cpi = cpi['CPIAUCSL'].iloc[-1]
         year_ago_cpi = cpi['CPIAUCSL'].iloc[-13] 
@@ -175,9 +177,8 @@ def fetch_economic_data():
         
         latest_unrate = unrate['UNRATE'].iloc[-1]
         
-        latest_gdp = gdp['GDP'].iloc[-1]
-        prev_gdp = gdp['GDP'].iloc[-2]
-        gdp_growth = ((latest_gdp / prev_gdp) ** 4 - 1) * 100
+        # Value is already annualized % change
+        gdp_growth = gdp['A191RL1Q225SBEA'].iloc[-1]
         
         return {
             "cpi_yoy": round(cpi_yoy, 2),
