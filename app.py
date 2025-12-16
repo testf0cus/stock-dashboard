@@ -14,6 +14,13 @@ st.set_page_config(
     layout="wide"
 )
 
+# --- LOGIN SYSTEM ---
+from auth import check_password
+
+if not check_password():
+    st.stop()
+
+
 def search_yahoo(query):
     url = "https://query2.finance.yahoo.com/v1/finance/search"
     params = {

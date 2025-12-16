@@ -3,6 +3,10 @@ import plotly.express as px
 import plotly.graph_objs as go
 import pandas as pd
 from macro_data import fetch_yield_curve, fetch_crypto_fear_greed, fetch_market_fear_vix, fetch_economic_data, fetch_basic_market_data, fetch_sector_performance
+from auth import check_password
+
+if not check_password():
+    st.stop()
 
 st.set_page_config(
     page_title="Macro Economy",

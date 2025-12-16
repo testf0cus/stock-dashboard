@@ -5,6 +5,10 @@ __pycache__/
 # User Specific
 Nuevo documento de texto.txt
 
+# Streamlit Secrets (DO NOT COMMIT)
+.streamlit/secrets.toml
+
+
 # Dev Scripts (Optional - generally keep main repo clean)
 debug_finance.py
 test_search.py
