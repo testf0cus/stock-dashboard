@@ -103,24 +103,36 @@ fetch_params = {
 st.sidebar.markdown("---")
 st.sidebar.markdown("### 📚 Official Resources")
 
-with st.sidebar.expander("🏛️ Central Banks & Gov"):
+with st.sidebar.expander("🏛️ Central Banks & Rates"):
     st.markdown("• [Federal Reserve (FED)](https://www.federalreserve.gov/)")
+    st.markdown("• [FRED Data (St. Louis)](https://fred.stlouisfed.org)")
+    st.markdown("• [FED Rates Monitor](https://es.investing.com/central-banks/fed-rate-monitor)")
+    st.markdown("• [NY Fed Repo](https://www.newyorkfed.org/markets/desk-operations/repo)")
+    st.markdown("• [NY Fed Reverse Repo](https://www.newyorkfed.org/markets/desk-operations/reverse-repo)")
+    st.markdown("• [US Gov Bonds Yields](https://es.investing.com/rates-bonds/usa-government-bonds)")
+    st.markdown("• [Euribor Rates](https://www.euribor-rates.eu/es/graficos-del-euribor/)")
     st.markdown("• [ECB (Europe)](https://www.ecb.europa.eu/home/html/index.en.html)")
-    st.markdown("• [US Treasury (Bonds)](https://home.treasury.gov/)")
-    st.markdown("• [Bureau of Labor (CPI)](https://www.bls.gov/)")
-    st.markdown("• [SEC EDGAR Filings](https://www.sec.gov/edgar/searchedgar/companysearch)")
+    st.markdown("• [US Treasury](https://home.treasury.gov/)")
 
-with st.sidebar.expander("📰 Major Financial News"):
+with st.sidebar.expander("📈 Yield Curve (FRED)"):
+    st.caption("Official Data Series:")
+    st.markdown("• [10Y - 3M Spread](https://fred.stlouisfed.org/series/T10Y3M)")
+    st.markdown("• [10Y - 2Y Spread](https://fred.stlouisfed.org/series/T10Y2Y)")
+    st.markdown("• [Effective Fed Funds](https://fred.stlouisfed.org/series/FEDFUNDS)")
+
+with st.sidebar.expander("🧠 Sentiment & Psychology"):
+    st.markdown("• [Fear & Greed (Stocks)](https://edition.cnn.com/markets/fear-and-greed)")
+    st.markdown("• [Fear & Greed (Crypto)](https://alternative.me/crypto/fear-and-greed-index/)")
+    st.markdown("• [Put/Call Ratio](https://en.macromicro.me/charts/449/us-cboe-options-put-call-ratio)")
+    st.markdown("• [BTC Open Interest](https://es.coinalyze.net/bitcoin/open-interest)")
+    st.markdown("• [The Kobeissi Letter](https://x.com/KobeissiLetter)")
+
+with st.sidebar.expander("📰 News & Analysis"):
+    st.markdown("• [Real Inv. Advice](https://realinvestmentadvice.com/resources/newsletter/)")
     st.markdown("• [Bloomberg Markets](https://www.bloomberg.com/markets)")
     st.markdown("• [Reuters Finance](https://www.reuters.com/finance)")
     st.markdown("• [Financial Times](https://www.ft.com/)")
     st.markdown("• [CNBC Investing](https://www.cnbc.com/investing/)")
-    st.markdown("• [Yahoo Finance](https://finance.yahoo.com/)")
-    st.markdown("• [Investing.com](https://www.investing.com/)")
-
-with st.sidebar.expander("📱 Social & Sentiment"):
-    st.markdown("• [The Kobeissi Letter](https://x.com/KobeissiLetter)")
-    st.markdown("• [Reddit r/Economics](https://www.reddit.com/r/Economics/)")
 
 with st.sidebar.expander("🛢️ Commodities & Energy"):
     st.markdown("• [Gas Storage (GIE ALSI)](https://alsi.gie.eu/)")
@@ -129,8 +141,7 @@ with st.sidebar.expander("🛢️ Commodities & Energy"):
     st.markdown("• [OPEC Basket Price](https://www.opec.org/opec_web/en/data_graphs/40.htm)")
 
 st.sidebar.markdown("---")
-st.sidebar.caption("Dev_build.Alpha-0.1")
-st.sidebar.caption("Guillermo Blanco")
+st.sidebar.caption("© 2025 Stock_dashboard. Todos los derechos reservados. | v0.2")
 
 # Fetch Data
 if ticker:

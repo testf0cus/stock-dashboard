@@ -1,0 +1,10 @@
+# Python
+__pycache__/
+*.pyc
+
+# User Specific
+Nuevo documento de texto.txt
+
+# Dev Scripts (Optional - generally keep main repo clean)
+debug_finance.py
+test_search.py

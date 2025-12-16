@@ -4,3 +4,5 @@ plotly
 pandas
 feedparser
 requests
+pandas-datareader
+setuptools
