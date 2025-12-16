@@ -7,80 +7,112 @@ import datetime
 
 def fetch_yield_curve():
     """
-    Fetches US Treasury Yields using yfinance proxies.
-    Returns: DataFrame with 'Maturity', 'Yield', 'Yield 1M Ago', 'Delta'.
+    Fetches Custom US Treasury Yields (4M, 8M, 1Y, 3Y, 5Y) using FRED data.
+    4M and 8M are interpolated.
+    Returns: DataFrame sorted by maturity.
     """
-    # Yahoo Finance Tickers for US Treasury Yields
-    tickers = {
-        "^IRX": "13 Week",
-        "^FVX": "5 Year",
-        "^TNX": "10 Year",
-        "^TYX": "30 Year"
-    }
-    
-    current_data = {}
-    prev_data = {}
-    
     try:
-        # Fetch 1mo + extra buffer to ensure we get a point ~30 days ago
-        ticker_str = " ".join(tickers.keys())
-        hist = yf.download(ticker_str, period="2mo", progress=False)['Close']
+        # FRED Series IDs
+        series_ids = ['DGS3MO', 'DGS6MO', 'DGS1', 'DGS3', 'DGS5']
         
-        if not hist.empty:
-            # Latest valid day
-            latest = hist.iloc[-1]
+        start = datetime.datetime.now() - datetime.timedelta(days=45) # Get enough history for 1M ago
+        end = datetime.datetime.now()
+        
+        df = web.DataReader(series_ids, 'fred', start, end)
+        
+        if df.empty:
+            return pd.DataFrame()
             
-            # ~30 days ago (simple approximation: look back ~22 trading days)
-            # Or find index nearest to today - 30 days
-            target_date = datetime.datetime.now() - datetime.timedelta(days=30)
+        latest = df.iloc[-1]
+        
+        # Calculate 1 Month Ago (approx 22 trading days)
+        if len(df) > 22:
+            prev = df.iloc[-22]
+        else:
+            prev = df.iloc[0]
             
-            # Find nearest index in hist to target_date
-            # abs(hist.index - target_date).argmin()
+        data = []
+        
+        # Helper for interpolation
+        def interpolate(val1, val2, weight1=0.5):
+            return val1 * weight1 + val2 * (1 - weight1)
             
-            try:
-                # Convert index to datetime if needed (usually it is already)
-                # Ensure index is timezone naive or compatible
-                idx_pos = hist.index.get_indexer([target_date], method='nearest')[0]
-                prev = hist.iloc[idx_pos]
-            except:
-                 # Fallback: Just take 22 days ago (approx 1 trading month)
-                 if len(hist) > 22:
-                     prev = hist.iloc[-22]
-                 else:
-                     prev = hist.iloc[0]
+        # --- CALCULATE CURRENT YIELDS ---
+        y3m = latest['DGS3MO']
+        y6m = latest['DGS6MO']
+        y1y = latest['DGS1']
+        y3y = latest['DGS3']
+        y5y = latest['DGS5']
+        
+        # Interpolations
+        # 4 Month: roughly 1/3 way from 3M to 6M? Or simple average?
+        # 3M (90d) -> 4M (120d) -> 6M (180d). 4M is 30d from 3M, 60d from 6M.
+        # It's closer to 3M. Weight 3M: 2/3, 6M: 1/3?
+        # Linear: y = y1 + (x - x1) * (y2 - y1) / (x2 - x1)
+        # x1=3, x2=6, x=4. (4-3)/(6-3) = 1/3. So 1/3 of the way from 3M to 6M.
+        y4m = y3m + (1/3) * (y6m - y3m)
+        
+        # 8 Month: between 6M and 1Y (12M).
+        # x1=6, x2=12, x=8. (8-6)/(12-6) = 2/6 = 1/3.
+        y8m = y6m + (1/3) * (y1y - y6m)
+        
+        # --- CALCULATE PREVIOUS YIELDS ---
+        p3m = prev['DGS3MO']
+        p6m = prev['DGS6MO']
+        p1y = prev['DGS1']
+        p3y = prev['DGS3']
+        p5y = prev['DGS5']
+        
+        p4m = p3m + (1/3) * (p6m - p3m)
+        p8m = p6m + (1/3) * (p1y - p6m)
+        
+        # Store in list
+        obs = [
+            ("4 Month", y4m, p4m, 4/12),
+            ("8 Month", y8m, p8m, 8/12),
+            ("1 Year", y1y, p1y, 1),
+            ("3 Year", y3y, p3y, 3),
+            ("5 Year", y5y, p5y, 5)
+        ]
+        
+        for name, val, prev_val, sort_key in obs:
+            data.append({
+                "Maturity": name,
+                "Yield": float(val),
+                "Yield 1M Ago": float(prev_val),
+                "Delta (bps)": (val - prev_val) * 100,
+                "SortKey": sort_key
+            })
+            
+        return pd.DataFrame(data).sort_values("SortKey")
 
-            for symbol, maturity in tickers.items():
-                if symbol in latest:
-                    current_data[maturity] = float(latest[symbol])
-                if symbol in prev:
-                    prev_data[maturity] = float(prev[symbol])
-            
-            # Create DataFrame
-            rows = []
-            for maturity in tickers.values():
-                curr_val = current_data.get(maturity, 0)
-                prev_val = prev_data.get(maturity, 0)
-                rows.append({
-                    "Maturity": maturity,
-                    "Yield": curr_val,
-                    "Yield 1M Ago": prev_val,
-                    "Delta (bps)": (curr_val - prev_val) * 100
-                })
-
-            yield_df = pd.DataFrame(rows)
-            
-            # Sort
-            sort_map = {"13 Week": 0.25, "5 Year": 5, "10 Year": 10, "30 Year": 30}
-            yield_df['SortKeys'] = yield_df['Maturity'].map(sort_map)
-            yield_df = yield_df.sort_values('SortKeys').drop('SortKeys', axis=1)
-            
-            return yield_df
-            
     except Exception as e:
-        print(f"Error fetching yields: {e}")
+        print(f"Error fetching yields (FRED): {e}")
         return pd.DataFrame()
 
-    return pd.DataFrame()
+def fetch_high_yield_spread():
+    """
+    Fetches ICE BofA US High Yield Index Option-Adjusted Spread (BAMLH0A1HYBB).
+    Returns dict with value and delta.
+    """
+    try:
+        start = datetime.datetime.now() - datetime.timedelta(days=10)
+        end = datetime.datetime.now()
+        series = web.DataReader('BAMLH0A1HYBB', 'fred', start, end)
+        
+        if not series.empty:
+            hy_series = series['BAMLH0A1HYBB'].dropna()
+            if len(hy_series) > 0:
+                val = hy_series.iloc[-1]
+                prev = hy_series.iloc[-2] if len(hy_series) > 1 else val
+                return {
+                    "value": val,
+                    "delta": val - prev,
+                    "date": hy_series.index[-1].strftime('%Y-%m-%d')
+                }
+    except Exception as e:
+        print(f"Error fetching HY Spread: {e}")
+    return None
 
 def fetch_crypto_fear_greed():
     """

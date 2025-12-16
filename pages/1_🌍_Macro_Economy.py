@@ -2,7 +2,7 @@ import streamlit as st
 import plotly.express as px
 import plotly.graph_objs as go
 import pandas as pd
-from macro_data import fetch_yield_curve, fetch_crypto_fear_greed, fetch_market_fear_vix, fetch_economic_data, fetch_basic_market_data, fetch_sector_performance
+from macro_data import fetch_yield_curve, fetch_crypto_fear_greed, fetch_market_fear_vix, fetch_economic_data, fetch_basic_market_data, fetch_sector_performance, fetch_high_yield_spread
 from auth import check_password
 
 if not check_password():
@@ -89,37 +89,29 @@ st.caption(f"Source: {eco_data['source']}")
 st.markdown("---")
 
 
-st.subheader("📈 US Treasury Yield Curve")
+st.subheader("📈 US Treasury Yields (Custom: 4M, 8M, 1Y, 3Y, 5Y)")
 
 yield_df = fetch_yield_curve()
 
 if not yield_df.empty:
-    # Check for Inversion (10Y - 2Y)
-    # We need to extract values safely
-    try:
-        y10 = yield_df[yield_df['Maturity'] == '10 Year']['Yield'].values[0]
-        # y5 is usually used if y2 is missing in some simplified views, but we want y2.
-        # But our tickers list didn't include 2Y? (^TNX, ^FVX, ^IRX... ^TYX)
-        # ^IRX is 13 week. ^FVX is 5 year. ^TNX is 10y. ^TYX is 30y.
-        # WAITING: The user asked for 10Y-2Y. I usually use ^ZT for 2Y but Yahoo ticker is tricky. 
-        # Actually I missed adding 2 Year to the tickers map in previous step! 
-        # Let's use 5Y as proxy if 2Y is missing or just calculate what we have (10Y - 3M is also valid recession signal).
-        # Let's stick to what we have (10Y - 5Y) or better, 10Y - 13Week (3M) which is a VERY strong signal.
-        # But the plan said 10Y-2Y. I should have added ^ZT or similar.
-        # Let's use 10Y - 3M (13 Week) for now as it is present.
-        y3m = yield_df[yield_df['Maturity'] == '13 Week']['Yield'].values[0]
-        spread = y10 - y3m
-        
-        inv_col1, inv_col2 = st.columns([1, 3])
-        with inv_col1:
-            st.metric("Spread 10Y - 3M", f"{spread:.2f} bps", delta_color="normal")
-        with inv_col2:
-            if spread < 0:
-                st.error("⚠️ **INVERTED CURVE (Recession Signal):** Long-term rates are lower than short-term.")
-            else:
-                st.success("✅ **Normal Curve:** Long-term rates higher than short-term.")
-    except:
-        pass
+    # --- High Yield Spread (Replacement for Inversion Check) ---
+    hy_data = fetch_high_yield_spread()
+    
+    col_spread1, col_spread2 = st.columns([1, 2])
+    with col_spread1:
+        if hy_data:
+            st.metric(
+                "High Yield Spread (BofA)", 
+                f"{hy_data['value']:.2f}%", 
+                f"{hy_data['delta']:.2f}%", 
+                delta_color="inverse" # Rising spread is bad (red)
+            )
+        else:
+            st.warning("Spread data unavailable")
+    
+    with col_spread2:
+        st.caption("**ICE BofA US High Yield Index Option-Adjusted Spread**")
+        st.caption("A proxy for credit risk. Rising spread = Stress/Fear. Falling spread = Confident market.")
 
     # Plot
     fig = go.Figure()
