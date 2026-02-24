@@ -20,6 +20,67 @@ from auth import check_password
 if not check_password():
     st.stop()
 
+# --- WELCOME PAGE ---
+if "welcome_seen" not in st.session_state:
+    st.session_state["welcome_seen"] = False
+
+if not st.session_state["welcome_seen"]:
+    st.markdown(
+        """
+        <style>
+            /* Hide sidebar and default Streamlit elements on welcome page */
+            [data-testid="stSidebar"] { display: none; }
+            header { display: none; }
+            #MainMenu { display: none; }
+            footer { display: none; }
+        </style>
+        <div style="
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 80vh;
+            padding: 2rem;
+        ">
+            <div style="
+                background: #fffbeb;
+                border: 2px solid #f59e0b;
+                border-radius: 16px;
+                padding: 3rem 2.5rem;
+                max-width: 700px;
+                width: 100%;
+                box-shadow: 0 4px 24px rgba(245, 158, 11, 0.15);
+                text-align: center;
+            ">
+                <div style="font-size: 3.5rem; margin-bottom: 1rem;">⚠️</div>
+                <h2 style="
+                    color: #92400e;
+                    font-size: 1.6rem;
+                    font-weight: 700;
+                    margin: 0 0 1.2rem 0;
+                ">
+                    Desarrollo pausado
+                </h2>
+                <p style="
+                    color: #78350f;
+                    font-size: 1.1rem;
+                    font-weight: 400;
+                    line-height: 1.8;
+                    margin: 0;
+                ">
+                    He encontrado una web que hace exactamente lo que quiero replicar pero 100 veces más avanzado y te da la clave del éxito.
+                </p>
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+    col_left, col_center, col_right = st.columns([1, 1, 1])
+    with col_center:
+        if st.button("Continuar →", use_container_width=True):
+            st.session_state["welcome_seen"] = True
+            st.rerun()
+    st.stop()
+
 
 def search_yahoo(query):
     url = "https://query2.finance.yahoo.com/v1/finance/search"
