@@ -3,6 +3,8 @@ import yfinance as yf
 import plotly.graph_objs as go
 import pandas as pd
 import numpy as np
+import base64
+from pathlib import Path
 
 import requests
 from tickers_data import TICKERS
@@ -25,14 +27,18 @@ if "welcome_seen" not in st.session_state:
     st.session_state["welcome_seen"] = False
 
 if not st.session_state["welcome_seen"]:
+    # Load GIF as base64 for inline rendering
+    gif_path = Path(__file__).parent / "assets" / "dance.gif"
+    gif_b64 = base64.b64encode(gif_path.read_bytes()).decode()
+
     st.markdown(
-        """
+        f"""
         <style>
             /* Hide sidebar and default Streamlit elements on welcome page */
-            [data-testid="stSidebar"] { display: none; }
-            header { display: none; }
-            #MainMenu { display: none; }
-            footer { display: none; }
+            [data-testid="stSidebar"] {{ display: none; }}
+            header {{ display: none; }}
+            #MainMenu {{ display: none; }}
+            footer {{ display: none; }}
         </style>
         <div style="
             display: flex;
@@ -65,10 +71,14 @@ if not st.session_state["welcome_seen"]:
                     font-size: 1.1rem;
                     font-weight: 400;
                     line-height: 1.8;
-                    margin: 0;
+                    margin: 0 0 1.5rem 0;
                 ">
                     He encontrado una web que hace exactamente lo que quiero replicar pero 100 veces más avanzado y te da la clave del éxito.
                 </p>
+                <img src="data:image/gif;base64,{gif_b64}" alt="dance" style="
+                    max-width: 200px;
+                    border-radius: 12px;
+                " />
             </div>
         </div>
         """,
